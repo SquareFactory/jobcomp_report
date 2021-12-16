@@ -1,6 +1,6 @@
 # jobcomp/report: A job completion plugin for Slurm using TRES Billing
 
-Was made for `slurm-21-08-3-1`.
+**Warning:** The plugin was made for `slurm-21-08-3-1`.
 
 ## Configuring
 
@@ -47,6 +47,40 @@ cd build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/lib/slurm
 make -j$(nproc)
 sudo make install
 ```
+
+## Using
+
+In the slurm.conf of the slurm controller.
+
+```conf
+JobCompType=jobcomp/report
+JobCompLoc=/var/log/jobs-costs
+```
+
+When a job is `COMPLETING`, the plugin will generates files `<jobid>.cost`in the directory`JobCompLoc` with the format:
+
+```yml
+job_id: 1
+user_id: 1000
+cluster: mycluster
+partition: mypartition
+state: COMPLETING
+allocated_ressources:
+  cpu: 1
+  mem: 7000
+  gpu: 0
+billable_ressources: 4
+time_start: 1639677998
+time_end: 1639678436
+job_duration: 438
+cost_tier:
+  name: normal
+  factor: 1.000000
+total_cost: 29
+```
+
+The total cost calculation is `round((billing * elapsed * qos_usage_factor)/60.0)`.
+Billing is an integer value and fetched in the `job_ptr->tres_alloc_cnt[TRES_ARRAY_BILLING]`.
 
 ## Maintaining and updating the plugin for new Slurm Version
 
