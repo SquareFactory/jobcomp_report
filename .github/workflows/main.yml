@@ -15,9 +15,6 @@ jobs:
       - name: Install dependencies on ubuntu
         run: |
           sudo apt update && sudo apt install -y ninja-build build-essential cmake
-          ninja --versions
-          cmake --version
-          gcc --version
 
       - name: Configure
         run: |
