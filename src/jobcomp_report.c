@@ -75,23 +75,23 @@ typedef struct report {
 } report_t;
 
 #define REPORT_FORMAT          \
-  "job_id: %d\n"               \
-  "user_id: %d\n"              \
+  "job_id: %du\n"              \
+  "user_id: %du\n"             \
   "cluster: %s\n"              \
   "partition: %s\n"            \
   "state: %s\n"                \
   "allocated_ressources:\n"    \
-  "  cpu: %ld\n"               \
-  "  mem: %ld\n"               \
-  "  gpu: %ld\n"               \
-  "billable_ressources: %ld\n" \
+  "  cpu: %lu\n"               \
+  "  mem: %lu\n"               \
+  "  gpu: %lu\n"               \
+  "billable_ressources: %lu\n" \
   "time_start: %ld\n"          \
   "time_end: %ld\n"            \
   "job_duration: %ld\n"        \
   "cost_tier:\n"               \
   "  name: %s\n"               \
   "  factor: %lf\n"            \
-  "total_cost: %ld\n"
+  "total_cost: %lu\n"
 
 /* File descriptor used for logging */
 static char *log_directory = NULL;
@@ -155,14 +155,14 @@ extern int jobcomp_p_set_location(char *location) {
  * for failure.
  */
 extern int jobcomp_p_log_record(job_record_t *job_ptr) {
-  debug("%s: start %s %d", plugin_type, __func__, job_ptr->job_id);
+  debug("%s: start %s %du", plugin_type, __func__, job_ptr->job_id);
   if (job_ptr == NULL) return error("%s: job_ptr is NULL", plugin_type);
 
   // Assert the job state
   if (!IS_JOB_COMPLETE(job_ptr) && !IS_JOB_TIMEOUT(job_ptr) &&
       !IS_JOB_FAILED(job_ptr) && !IS_JOB_COMPLETING(job_ptr)) {
     debug(
-        "%s: job %d is not COMPLETED but was %s, "
+        "%s: job %du is not COMPLETED but was %s, "
         "ignoring...",
         plugin_type, job_ptr->job_id, job_state_string(job_ptr->job_state));
     return SLURM_SUCCESS;
@@ -180,7 +180,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
 
   // Format the output file path
   char log_path[1024];
-  snprintf(log_path, sizeof(log_path), "%s/%d.cost", log_directory,
+  snprintf(log_path, sizeof(log_path), "%s/%du.cost", log_directory,
            job_ptr->job_id);
 
   debug("%s: fetch report", plugin_type);
@@ -188,7 +188,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   // Parsing the job_ptr
   report_t report;
   report.job_id = job_ptr->job_id;
-  debug("%s: report.job_id %d", plugin_type, report.job_id);
+  debug("%s: report.job_id %du", plugin_type, report.job_id);
   if (job_ptr->assoc_ptr && job_ptr->assoc_ptr->cluster &&
       job_ptr->assoc_ptr->cluster[0])
     report.cluster = xstrdup(job_ptr->assoc_ptr->cluster);
@@ -205,7 +205,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   debug("%s: report.job_state %s", plugin_type,
         job_state_string(job_ptr->job_state));
   report.user_id = job_ptr->user_id;
-  debug("%s: report.user_id %d", plugin_type, report.user_id);
+  debug("%s: report.user_id %du", plugin_type, report.user_id);
   report.start_time = job_ptr->start_time;
   debug("%s: report.start_time %ld", plugin_type, report.start_time);
   report.end_time = job_ptr->end_time;
@@ -221,16 +221,16 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   debug("%s: report.qos_name %s", plugin_type, report.qos_name);
   if (job_ptr->tres_alloc_cnt) {
     report.billing = job_ptr->tres_alloc_cnt[TRES_ARRAY_BILLING];
-    debug("%s: report.billing %ld", plugin_type, report.billing);
+    debug("%s: report.billing %lu", plugin_type, report.billing);
     report.mem = job_ptr->tres_alloc_cnt[TRES_ARRAY_MEM];
-    debug("%s: report.mem %ld", plugin_type, report.mem);
+    debug("%s: report.mem %lu", plugin_type, report.mem);
     report.cpu = job_ptr->tres_alloc_cnt[TRES_ARRAY_CPU];
-    debug("%s: report.cpu %ld", plugin_type, report.cpu);
+    debug("%s: report.cpu %lu", plugin_type, report.cpu);
   }
   report.total_cost = ((uint64_t)round(
       ((double)report.billing * (double)report.elapsed * report.usage_factor) /
       60.0l));
-  debug("%s: report.total_cost %ld", plugin_type, report.total_cost);
+  debug("%s: report.total_cost %lu", plugin_type, report.total_cost);
 
   // Trying to find the gres gpu. Default to 0.
   // See: https://slurm.schedmd.com/gres_design.html
@@ -245,7 +245,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
       if (xstrncmp(gres_state->gres_name, "gpu", 3) == 0) {
         gres_job_state_t *gres_job_state = gres_state->gres_data;
         report.gpu = gres_job_state->total_gres;
-        debug("%s: report.gpu %ld", plugin_type, report.gpu);
+        debug("%s: report.gpu %lu", plugin_type, report.gpu);
         break;
       }
     }
@@ -275,7 +275,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   xfree(report.cluster);
   xfree(report.qos_name);
 
-  debug("%s: end %s %d", plugin_type, __func__, job_ptr->job_id);
+  debug("%s: end %s %du", plugin_type, __func__, job_ptr->job_id);
   return rc;
 }
 
