@@ -75,8 +75,8 @@ typedef struct report {
 } report_t;
 
 #define REPORT_FORMAT          \
-  "job_id: %du\n"              \
-  "user_id: %du\n"             \
+  "job_id: %u\n"               \
+  "user_id: %u\n"              \
   "cluster: %s\n"              \
   "partition: %s\n"            \
   "state: %s\n"                \
@@ -155,14 +155,14 @@ extern int jobcomp_p_set_location(char *location) {
  * for failure.
  */
 extern int jobcomp_p_log_record(job_record_t *job_ptr) {
-  debug("%s: start %s %du", plugin_type, __func__, job_ptr->job_id);
+  debug("%s: start %s %u", plugin_type, __func__, job_ptr->job_id);
   if (job_ptr == NULL) return error("%s: job_ptr is NULL", plugin_type);
 
   // Assert the job state
   if (!IS_JOB_COMPLETE(job_ptr) && !IS_JOB_TIMEOUT(job_ptr) &&
       !IS_JOB_FAILED(job_ptr) && !IS_JOB_COMPLETING(job_ptr)) {
     debug(
-        "%s: job %du is not COMPLETED but was %s, "
+        "%s: job %u is not COMPLETED but was %s, "
         "ignoring...",
         plugin_type, job_ptr->job_id, job_state_string(job_ptr->job_state));
     return SLURM_SUCCESS;
@@ -180,7 +180,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
 
   // Format the output file path
   char log_path[1024];
-  snprintf(log_path, sizeof(log_path), "%s/%du.cost", log_directory,
+  snprintf(log_path, sizeof(log_path), "%s/%u.cost", log_directory,
            job_ptr->job_id);
 
   debug("%s: fetch report", plugin_type);
@@ -188,7 +188,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   // Parsing the job_ptr
   report_t report;
   report.job_id = job_ptr->job_id;
-  debug("%s: report.job_id %du", plugin_type, report.job_id);
+  debug("%s: report.job_id %u", plugin_type, report.job_id);
   if (job_ptr->assoc_ptr && job_ptr->assoc_ptr->cluster &&
       job_ptr->assoc_ptr->cluster[0])
     report.cluster = xstrdup(job_ptr->assoc_ptr->cluster);
@@ -205,7 +205,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   debug("%s: report.job_state %s", plugin_type,
         job_state_string(job_ptr->job_state));
   report.user_id = job_ptr->user_id;
-  debug("%s: report.user_id %du", plugin_type, report.user_id);
+  debug("%s: report.user_id %u", plugin_type, report.user_id);
   report.start_time = job_ptr->start_time;
   debug("%s: report.start_time %ld", plugin_type, report.start_time);
   report.end_time = job_ptr->end_time;
@@ -275,7 +275,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
   xfree(report.cluster);
   xfree(report.qos_name);
 
-  debug("%s: end %s %du", plugin_type, __func__, job_ptr->job_id);
+  debug("%s: end %s %u", plugin_type, __func__, job_ptr->job_id);
   return rc;
 }
 
