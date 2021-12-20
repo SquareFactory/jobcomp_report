@@ -242,7 +242,7 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
 
     while ((gres_state = list_next(itr))) {
       debug("%s: found gres %s", plugin_type, gres_state->gres_name);
-      if (strncmp(gres_state->gres_name, "gpu", 3) == 0) {
+      if (xstrncmp(gres_state->gres_name, "gpu", 3) == 0) {
         gres_job_state_t *gres_job_state = gres_state->gres_data;
         report.gpu = gres_job_state->total_gres;
         debug("%s: report.gpu %ld", plugin_type, report.gpu);
