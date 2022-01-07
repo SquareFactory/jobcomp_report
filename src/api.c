@@ -127,7 +127,7 @@ int build_json_object(const report_t* report, cJSON* output) {
   if (!cJSON_AddStringToObject(cost_tier, "name", report->qos_name)) {
     return error("cJSON_AddStringToObject: failed");
   }
-  if (!cJSON_AddNumberToObject(cost_tier, "facotr", report->usage_factor)) {
+  if (!cJSON_AddNumberToObject(cost_tier, "factor", report->usage_factor)) {
     return error("cJSON_AddNumberToObject: failed");
   }
   if (!cJSON_AddNumberToObject(output, "total_cost", report->total_cost)) {
