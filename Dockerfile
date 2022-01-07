@@ -9,6 +9,7 @@ RUN apt update \
   ninja-build \
   build-essential \
   cmake \
+  libcurl4-openssl-dev \
   && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir build \
