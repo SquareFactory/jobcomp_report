@@ -7,6 +7,7 @@ set(SLURM_SRC_DIR ${CMAKE_SOURCE_DIR}/externals/slurm)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 project(
   jobcomp_report
@@ -60,7 +61,7 @@ set_target_properties(
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${SLURM_SRC_DIR})
 target_include_directories(${CMAKE_PROJECT_NAME}_static PUBLIC ${SLURM_SRC_DIR})
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE curl m)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Threads::Threads curl m)
 
 install(
   TARGETS jobcomp_report jobcomp_report_static
