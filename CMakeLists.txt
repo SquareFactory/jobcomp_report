@@ -13,7 +13,26 @@ project(
   VERSION 1.0.0
   DESCRIPTION "Job completion reporting plugin")
 
-add_compile_options(-O3 -Wall -Wextra -Wno-unused-parameter)
+find_package(CURL REQUIRED)
+
+add_compile_options(
+  -O3
+  -m64
+  -std=c99
+  -Wall
+  -Wextra
+  -Werror
+  -Wshadow
+  -Wformat=2
+  -Wpointer-arith
+  -Winit-self
+  -Wcast-align
+  -Wcast-qual
+  -Wunreachable-code
+  -fno-common
+  -Wno-unused-parameter)
+
+file(GLOB_RECURSE sources src/*.c src/*.h)
 
 add_custom_command(
   OUTPUT ${SLURM_SRC_DIR}/slurm/slurm_version.h
@@ -25,9 +44,8 @@ add_custom_command(
 add_custom_target(slurm_configure
                   DEPENDS ${SLURM_SRC_DIR}/slurm/slurm_version.h)
 
-add_library(jobcomp_report SHARED ${CMAKE_SOURCE_DIR}/src/jobcomp_report.c)
-add_library(jobcomp_report_static STATIC
-            ${CMAKE_SOURCE_DIR}/src/jobcomp_report.c)
+add_library(jobcomp_report SHARED ${sources})
+add_library(jobcomp_report_static STATIC ${sources})
 
 add_dependencies(jobcomp_report slurm_configure)
 add_dependencies(jobcomp_report_static slurm_configure)
@@ -37,10 +55,12 @@ set_target_properties(
   jobcomp_report_static
   PROPERTIES C_STANDARD 11
              PREFIX ""
-             OUTPUT_NAME jobcomp_report)
+             OUTPUT_NAME ${CMAKE_PROJECT_NAME})
 
-target_include_directories(jobcomp_report PUBLIC ${SLURM_SRC_DIR})
-target_include_directories(jobcomp_report_static PUBLIC ${SLURM_SRC_DIR})
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${SLURM_SRC_DIR})
+target_include_directories(${CMAKE_PROJECT_NAME}_static PUBLIC ${SLURM_SRC_DIR})
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE curl m)
 
 install(
   TARGETS jobcomp_report jobcomp_report_static

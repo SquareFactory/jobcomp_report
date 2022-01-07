@@ -1,5 +1,8 @@
 {
   "files.associations": {
+    "*.twig": "twig",
+    "*.eb": "python",
     "*.h": "c",
+    "sstream": "c"
   }
 }

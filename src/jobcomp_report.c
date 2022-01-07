@@ -1,12 +1,8 @@
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
+#include "jobcomp_report.h"
 
-#include "slurm/slurm_errno.h"
-#include "src/common/gres.h"
+#include "api.h"
+#include "slurm_utils.h"
 #include "src/common/slurm_jobcomp.h"
-#include "src/slurmctld/slurmctld.h"
 
 /*
  * These variables are required by the generic plugin interface.  If they
@@ -37,43 +33,6 @@ const char plugin_name[] = "Job completion reporting plugin";
 const char plugin_type[] = "jobcomp/report";
 const uint32_t plugin_version = SLURM_VERSION_NUMBER;
 
-typedef struct report {
-  /** @brief A Slurm Job ID. */
-  uint32_t job_id;
-  /** @brief A UNIX user ID. */
-  uint32_t user_id;
-  /** @brief A Slurm Cluster name. */
-  char *cluster;
-  /** @brief A Slurm Partition name. */
-  char *partition;
-  /** @brief A Slurm Job state. */
-  uint32_t job_state;
-  /** @brief The allocated CPUs. */
-  uint64_t cpu;
-  /** @brief The alloctaed memory in MB. */
-  uint64_t mem;
-  /** @brief The allocated GPUs. */
-  uint64_t gpu;
-  /** @brief The billing tres factor. */
-  uint64_t billing;
-  /** @brief The job start timestamp. */
-  time_t start_time;
-  /** @brief The job end timestamp. */
-  time_t end_time;
-  /** @brief The job duration. */
-  time_t elapsed;
-  /** @brief The name of the Qos. */
-  char *qos_name;
-  /** @brief The usage factor of the Qos. */
-  double usage_factor;
-  /**
-   * @brief The total cost.
-   *
-   * total_cost = round((usage_factor * elapsed * billing)/60.0)
-   */
-  uint64_t total_cost;
-} report_t;
-
 #define REPORT_FORMAT          \
   "job_id: %u\n"               \
   "user_id: %u\n"              \
@@ -94,7 +53,7 @@ typedef struct report {
   "total_cost: %lu\n"
 
 /* File descriptor used for logging */
-static char *log_directory = NULL;
+static char *report_url = NULL;
 
 /**
  * @brief Called when the plugin is loaded, before any other functions are
@@ -114,7 +73,7 @@ extern int init(void) {
  */
 extern int fini(void) {
   slurm_info("%s: Finishing %s", plugin_type, plugin_name);
-  xfree(log_directory);
+  xfree(report_url);
   return SLURM_SUCCESS;
 }
 
@@ -132,11 +91,11 @@ extern int jobcomp_p_set_location(char *location) {
   slurm_info("%s: Set location %s", plugin_type, location);
   int rc = SLURM_SUCCESS;
 
-  if (location == NULL) {
-    return SLURM_ERROR;
+  if (location == NULL || location[0] == '\0') {
+    return error("%s: JobCompLoc was either not set or blank", plugin_type);
   }
-  xfree(log_directory);
-  log_directory = xstrdup(location);
+  xfree(report_url);
+  report_url = xstrdup(location);
 
   return rc;
 }
@@ -167,116 +126,27 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
         plugin_type, job_ptr->job_id, job_state_string(job_ptr->job_state));
     return SLURM_SUCCESS;
   }
-
-  // Assert the directory exists
   int rc = SLURM_SUCCESS;
-  struct stat s;
-  if (log_directory == NULL || stat(log_directory, &s) != 0 ||
-      !S_ISDIR(s.st_mode)) {
-    slurm_perror("failure: stat");
-    return error("%s: JobCompLoc log directory %s is not accessible",
-                 plugin_type, log_directory);
-  }
-
-  // Format the output file path
-  char log_path[1024];
-  snprintf(log_path, sizeof(log_path), "%s/%u.cost", log_directory,
-           job_ptr->job_id);
 
   debug("%s: fetch report", plugin_type);
 
   // Parsing the job_ptr
   report_t report;
-  report.job_id = job_ptr->job_id;
-  debug("%s: report.job_id %u", plugin_type, report.job_id);
-  if (job_ptr->assoc_ptr && job_ptr->assoc_ptr->cluster &&
-      job_ptr->assoc_ptr->cluster[0])
-    report.cluster = xstrdup(job_ptr->assoc_ptr->cluster);
-  else
-    report.cluster = NULL;
-  debug("%s: report.cluster %s", plugin_type, report.cluster);
-  if (job_ptr->part_ptr && job_ptr->part_ptr->name &&
-      job_ptr->part_ptr->name[0])
-    report.partition = xstrdup(job_ptr->part_ptr->name);
-  else
-    report.partition = NULL;
-  debug("%s: report.partition %s", plugin_type, report.partition);
-  report.job_state = job_ptr->job_state;
-  debug("%s: report.job_state %s", plugin_type,
-        job_state_string(job_ptr->job_state));
-  report.user_id = job_ptr->user_id;
-  debug("%s: report.user_id %u", plugin_type, report.user_id);
-  report.start_time = job_ptr->start_time;
-  debug("%s: report.start_time %ld", plugin_type, report.start_time);
-  report.end_time = job_ptr->end_time;
-  debug("%s: report.end_time %ld", plugin_type, report.end_time);
-  report.elapsed = job_ptr->end_time - job_ptr->start_time;
-  debug("%s: report.elapsed %ld", plugin_type, report.elapsed);
-  if (job_ptr->qos_ptr) report.usage_factor = job_ptr->qos_ptr->usage_factor;
-  debug("%s: report.usage_factor %lf", plugin_type, report.usage_factor);
-  if (job_ptr->qos_ptr && job_ptr->qos_ptr->name && job_ptr->qos_ptr->name[0])
-    report.qos_name = xstrdup(job_ptr->qos_ptr->name);
-  else
-    report.qos_name = NULL;
-  debug("%s: report.qos_name %s", plugin_type, report.qos_name);
-  if (job_ptr->tres_alloc_cnt) {
-    report.billing = job_ptr->tres_alloc_cnt[TRES_ARRAY_BILLING];
-    debug("%s: report.billing %lu", plugin_type, report.billing);
-    report.mem = job_ptr->tres_alloc_cnt[TRES_ARRAY_MEM];
-    debug("%s: report.mem %lu", plugin_type, report.mem);
-    report.cpu = job_ptr->tres_alloc_cnt[TRES_ARRAY_CPU];
-    debug("%s: report.cpu %lu", plugin_type, report.cpu);
-  }
-  report.total_cost = ((uint64_t)round(
-      ((double)report.billing * (double)report.elapsed * report.usage_factor) /
-      60.0l));
-  debug("%s: report.total_cost %lu", plugin_type, report.total_cost);
+  parse_slurm_job_info(job_ptr, &report);
 
-  // Trying to find the gres gpu. Default to 0.
-  // See: https://slurm.schedmd.com/gres_design.html
-  debug("%s: gres_list_alloc", plugin_type);
-  report.gpu = 0;
-  if (job_ptr->gres_list_alloc && !list_is_empty(job_ptr->gres_list_alloc)) {
-    gres_state_t *gres_state = NULL;
-    ListIterator itr = list_iterator_create(job_ptr->gres_list_alloc);
-
-    while ((gres_state = list_next(itr))) {
-      debug("%s: found gres %s", plugin_type, gres_state->gres_name);
-      if (xstrncmp(gres_state->gres_name, "gpu", 3) == 0) {
-        gres_job_state_t *gres_job_state = gres_state->gres_data;
-        report.gpu = gres_job_state->total_gres;
-        debug("%s: report.gpu %lu", plugin_type, report.gpu);
-        break;
-      }
-    }
-    slurm_list_iterator_destroy(itr);
+  if (publish(&report, report_url) != 0) {
+    return error("%s: publish failed", plugin_type);
   }
 
-  debug("%s: archiving %s", plugin_type, log_path);
-
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), REPORT_FORMAT, report.job_id, report.user_id,
-           report.cluster, report.partition,
-           job_state_string(job_ptr->job_state), report.cpu, report.mem,
-           report.gpu, report.billing, report.start_time, report.end_time,
-           report.elapsed, report.qos_name, report.usage_factor,
-           report.total_cost);
-
-  debug("%s\n", buffer);
-
-  FILE *output = fopen(log_path, "w");
-  if (output != NULL) {
-    fprintf(output, "%s\n", buffer);
-    fclose(output);
-  } else {
-    rc = SLURM_ERROR;
-  }
-
-  xfree(report.cluster);
-  xfree(report.qos_name);
+  free_report_members(&report);
 
   debug("%s: end %s %u", plugin_type, __func__, job_ptr->job_id);
   return rc;
+}
+
+void free_report_members(report_t *report) {
+  xfree(report->cluster);
+  xfree(report->qos_name);
 }
 
 /**
