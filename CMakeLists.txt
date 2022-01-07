@@ -14,6 +14,7 @@ project(
   VERSION 1.0.0
   DESCRIPTION "Job completion reporting plugin")
 
+find_package(Threads REQUIRED)
 find_package(CURL REQUIRED)
 
 add_compile_options(
