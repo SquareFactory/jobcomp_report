@@ -35,6 +35,9 @@ jobs:
   build-with-docker:
     name: Build the plugin with docker
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        tag: ['18.04', '20.04', '22.04']
     steps:
       - uses: actions/checkout@v2
         with:
@@ -47,4 +50,4 @@ jobs:
           install: true
 
       - name: Build
-        run: docker build . -t jobcomp_report
+        run: docker build . -t jobcomp_report --build-arg ubuntu_version=${{ matrix.tag }}

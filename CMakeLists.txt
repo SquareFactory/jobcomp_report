@@ -63,6 +63,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${SLURM_SRC_DIR})
 target_include_directories(${CMAKE_PROJECT_NAME}_static PUBLIC ${SLURM_SRC_DIR})
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Threads::Threads curl m)
+target_link_libraries(${CMAKE_PROJECT_NAME}_static PRIVATE Threads::Threads
+                                                           curl m)
 
 install(
   TARGETS jobcomp_report jobcomp_report_static
