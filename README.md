@@ -54,29 +54,31 @@ In the slurm.conf of the slurm controller.
 
 ```conf
 JobCompType=jobcomp/report
-JobCompLoc=/var/log/jobs-costs
+JobCompLoc=https://endpoint
 ```
 
-When a job is `COMPLETING`, the plugin will generates files `<jobid>.cost`in the directory`JobCompLoc` with the format:
+When a job is `COMPLETING`, the plugin will POST to `JobCompLoc` with the format:
 
 ```yml
-job_id: 1
-user_id: 1000
-cluster: mycluster
-partition: mypartition
-state: COMPLETING
-allocated_ressources:
-  cpu: 1
-  mem: 7000
-  gpu: 0
-billable_ressources: 4
-time_start: 1639677998
-time_end: 1639678436
-job_duration: 438
-cost_tier:
-  name: normal
-  factor: 1.000000
-total_cost: 29
+{
+    "job_id": 1288,
+    "user_id": 1611,
+    "cluster": "reindeerpizza",
+    "partition": "main",
+    "state": "COMPLETING",
+    "allocated_ressources": {
+        "cpu": 1,
+        "mem": 7000,
+        "gpu": 0
+    },
+    "time_start": 1641583295,
+    "job_duration": 188,
+    "cost_tier": {
+        "name": "normal",
+        "facotr": 1
+    },
+    "total_cost": 13
+}
 ```
 
 The total cost calculation is `round((billing * elapsed * qos_usage_factor)/60.0)`.
