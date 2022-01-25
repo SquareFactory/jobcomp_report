@@ -33,25 +33,6 @@ const char plugin_name[] = "Job completion reporting plugin";
 const char plugin_type[] = "jobcomp/report";
 const uint32_t plugin_version = SLURM_VERSION_NUMBER;
 
-#define REPORT_FORMAT          \
-  "job_id: %u\n"               \
-  "user_id: %u\n"              \
-  "cluster: %s\n"              \
-  "partition: %s\n"            \
-  "state: %s\n"                \
-  "allocated_ressources:\n"    \
-  "  cpu: %lu\n"               \
-  "  mem: %lu\n"               \
-  "  gpu: %lu\n"               \
-  "billable_ressources: %lu\n" \
-  "time_start: %ld\n"          \
-  "time_end: %ld\n"            \
-  "job_duration: %ld\n"        \
-  "cost_tier:\n"               \
-  "  name: %s\n"               \
-  "  factor: %lf\n"            \
-  "total_cost: %lu\n"
-
 /* File descriptor used for logging */
 static char *report_url = NULL;
 
@@ -145,8 +126,10 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
 }
 
 void free_report_members(report_t *report) {
-  xfree(report->cluster);
-  xfree(report->qos_name);
+  if (report->account) free(report->account);
+  if (report->cluster) free(report->cluster);
+  if (report->qos_name) free(report->qos_name);
+  if (report->partition) free(report->partition);
 }
 
 /**

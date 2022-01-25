@@ -9,6 +9,8 @@ typedef struct report {
   uint32_t job_id;
   /** @brief A UNIX user ID. */
   uint32_t user_id;
+  /** @brief A Slurm account. */
+  char *account;
   /** @brief A Slurm Cluster name. */
   char *cluster;
   /** @brief A Slurm Partition name. */

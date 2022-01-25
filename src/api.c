@@ -85,6 +85,9 @@ int build_json_object(const report_t* report, cJSON* output) {
   if (!cJSON_AddNumberToObject(output, "user_id", report->user_id)) {
     return error("cJSON_AddNumberToObject: failed");
   }
+  if (!cJSON_AddStringToObject(output, "account", report->account)) {
+    return error("cJSON_AddStringToObject: failed");
+  }
   if (!cJSON_AddStringToObject(output, "cluster", report->cluster)) {
     return error("cJSON_AddStringToObject: failed");
   }
