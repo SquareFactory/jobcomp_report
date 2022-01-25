@@ -113,13 +113,13 @@ int build_json_object(const report_t* report, cJSON* output) {
     return error("cJSON_AddNumberToObject: failed");
   }
 
-  if (!cJSON_AddNumberToObject(output, "time_start", report->start_time)) {
+  if (!cJSON_AddNumberToObject(output, "start_time", report->start_time)) {
     return error("cJSON_AddNumberToObject: failed");
   }
-  if (!cJSON_AddNumberToObject(output, "time_start", report->end_time)) {
+  if (!cJSON_AddNumberToObject(output, "end_time", report->end_time)) {
     return error("cJSON_AddNumberToObject: failed");
   }
-  if (!cJSON_AddNumberToObject(output, "job_duration", report->elapsed)) {
+  if (!cJSON_AddNumberToObject(output, "billed_time", report->elapsed)) {
     return error("cJSON_AddNumberToObject: failed");
   }
 
