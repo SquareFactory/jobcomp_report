@@ -112,6 +112,10 @@ int build_json_object(const report_t* report, cJSON* output) {
   if (!cJSON_AddNumberToObject(allocated_ressources, "gpu", report->gpu)) {
     return error("cJSON_AddNumberToObject: failed");
   }
+  if (!cJSON_AddNumberToObject(output, "allocated_billing_factor",
+                               report->billing)) {
+    return error("cJSON_AddNumberToObject: failed");
+  }
 
   if (!cJSON_AddNumberToObject(output, "start_time", report->start_time)) {
     return error("cJSON_AddNumberToObject: failed");
