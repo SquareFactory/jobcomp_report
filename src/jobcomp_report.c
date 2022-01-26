@@ -126,10 +126,10 @@ extern int jobcomp_p_log_record(job_record_t *job_ptr) {
 }
 
 void free_report_members(report_t *report) {
-  if (report->account) free(report->account);
-  if (report->cluster) free(report->cluster);
-  if (report->qos_name) free(report->qos_name);
-  if (report->partition) free(report->partition);
+  if (report->account) xfree(report->account);
+  if (report->cluster) xfree(report->cluster);
+  if (report->qos_name) xfree(report->qos_name);
+  if (report->partition) xfree(report->partition);
 }
 
 /**
