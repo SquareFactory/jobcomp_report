@@ -46,6 +46,7 @@ int publish(report_t* report, char* url) {
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 
   if (build_json_object(report, body) != 0) {
     rc = error("build_json_object: failed");
