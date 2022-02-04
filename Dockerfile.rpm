@@ -10,6 +10,7 @@ WORKDIR /work
 RUN dnf install -y \
   make \
   gcc \
+  git \
   libcurl-devel \
   rpm-build \
   && dnf clean all
