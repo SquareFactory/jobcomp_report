@@ -12,7 +12,7 @@ void parse_slurm_job_info(job_record_t* job, report_t* report) {
     report->account = xstrdup(job->account);
   else
     report->account = NULL;
-  debug("%s: report->cluster %s", plugin_type, report->cluster);
+  debug("%s: report->account %s", plugin_type, report->account);
   if (job->assoc_ptr && job->assoc_ptr->cluster && job->assoc_ptr->cluster[0])
     report->cluster = xstrdup(job->assoc_ptr->cluster);
   else
