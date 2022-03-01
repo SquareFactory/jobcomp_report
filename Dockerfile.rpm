@@ -42,4 +42,4 @@ RUN rpm -i /artifacts/*.rpm
 # Assert
 RUN stat /usr/lib64/slurm/jobcomp_report.so && stat /usr/lib64/slurm/jobcomp_report.a
 
-CMD ["rsync", "-a", "-v", "-z", "-P", "/root/rpmbuild/RPMS/x86_64/", "repository:/repository/"]
+CMD ["rsync", "-a", "-v", "-z", "-P", "/artifacts/", "repository:/repository/"]
