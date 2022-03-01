@@ -100,4 +100,4 @@ jobs:
           sudo chmod 600 /secrets/*
 
       - name: Run Docker image
-        run: sudo docker run --rm --pull never -v "/secrets:/root/.ssh" builder
+        run: sudo docker run --rm --pull never -v "/secrets:/root/.ssh" jobcomp-report

@@ -31,7 +31,11 @@ RUN mkdir build \
   && mv ./*.rpm /artifacts \
   && mv _CPack_Packages/Linux/RPM/SPECS/*.spec /artifacts
 
+CMD ["rsync", "-a", "-v", "-z", "-P", "/artifacts/", "repository:/repository/"]
+
+# -----------------------------------------------------------
 FROM quay.io/rockylinux/rockylinux:${rocky_version} as tester
+# -----------------------------------------------------------
 
 ARG slurm_version
 
@@ -41,5 +45,3 @@ RUN rpm -i /artifacts/*.rpm
 
 # Assert
 RUN stat /usr/lib64/slurm/jobcomp_report.so && stat /usr/lib64/slurm/jobcomp_report.a
-
-CMD ["rsync", "-a", "-v", "-z", "-P", "/artifacts/", "repository:/repository/"]
