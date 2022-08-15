@@ -55,6 +55,9 @@ void parse_slurm_job_info(job_record_t* job, report_t* report) {
                        60.0l));
   debug("%s: report->total_cost %lu", plugin_type, report->total_cost);
 
+  report->priority = job->priority;
+  slurm_debug("%s: report->priority %u", plugin_type, report->priority);
+
   // Trying to find the gres gpu. Default to 0.
   // See: https://slurm.schedmd.com/gres_design.html
   debug("%s: gres_list_alloc", plugin_type);

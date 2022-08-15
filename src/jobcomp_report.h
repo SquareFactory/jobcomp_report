@@ -41,6 +41,8 @@ typedef struct report {
    * total_cost = round((usage_factor * elapsed * billing)/60.0)
    */
   uint64_t total_cost;
+  /** @brief The priority of the job. */
+  uint32_t priority;
 } report_t;
 
 void free_report_members(report_t *report);
