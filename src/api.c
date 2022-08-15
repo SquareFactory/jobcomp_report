@@ -141,6 +141,9 @@ int build_json_object(const report_t* report, cJSON* output) {
   if (!cJSON_AddNumberToObject(output, "total_cost", report->total_cost)) {
     return error("cJSON_AddNumberToObject: failed");
   }
+  if (!cJSON_AddNumberToObject(output, "priority", report->priority)) {
+    return error("cJSON_AddNumberToObject: failed");
+  }
 
   return 0;
 }
